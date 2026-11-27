@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Indicador General de Cumplimiento de OT</title>
+
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- LIBRERÍAS EXTERNAS -->
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
+</head>
+
+<body>
+
+    <!-- ENCABEZADO CORPORATIVO -->
+
+    <header class="header">
+
+        <div class="brand">
+
+            <h1>TESALIA CBC</h1>
+
+            <p>Ingeniería Machachi | Planificación de Mantenimiento</p>
+
+        </div>
+
+        <div class="header-info">
+
+            <h2>Indicador General de Cumplimiento de OT</h2>
+
+            <p>Seguimiento de ejecución y cierre técnico SAP</p>
+
+            <span id="fechaActualizacion">
+                Pendiente de actualización
+            </span>
+
+        </div>
+
+    </header>
+
+
+    <main class="container">
+
+        <!-- FUENTE DE INFORMACIÓN -->
+
+        <section class="panel upload-panel">
+
+            <h2>Fuente de información SAP</h2>
+
+            <div class="upload-container">
+
+                <label for="archivoExcel" class="btn-primary">
+                    Cargar archivo IW47
+                </label>
+
+                <input type="file"
+                       id="archivoExcel"
+                       accept=".xlsx,.xls"
+                       hidden>
+
+                <span id="nombreArchivo">
+                    Ningún archivo seleccionado
+                </span>
+
+            </div>
+
+            <p id="estadoCarga">
+                Carga el archivo de notificaciones de SAP.
+            </p>
+
+        </section>
+
+
+        <!-- FILTROS DE INFORMACIÓN -->
+
+        <section class="panel filtros-fijos">
+
+            <h2>Filtros de información</h2>
+
+            <div class="filters">
+
+                <div class="filter-group">
+
+                    <label for="filtroAnio">Año</label>
+
+                    <select id="filtroAnio">
+                        <option value="">Todos</option>
+                    </select>
+
+                </div>
+
+                <div class="filter-group">
+
+                    <label for="filtroMes">Mes</label>
+
+                    <select id="filtroMes">
+                        <option value="">Todos</option>
+                    </select>
+
+                </div>
+
+                <div class="filter-group">
+
+                    <label for="filtroSemana">Semana</label>
+
+                    <select id="filtroSemana">
+                        <option value="">Todas</option>
+                    </select>
+
+                </div>
+
+                <div class="filter-group">
+
+                    <label for="fechaDesde">Fecha desde</label>
+
+                    <input type="date" id="fechaDesde">
+
+                </div>
+
+                <div class="filter-group">
+
+                    <label for="fechaHasta">Fecha hasta</label>
+
+                    <input type="date" id="fechaHasta">
+
+                </div>
+
+                <div class="filter-group">
+
+                    <label for="filtroEspecialidad">
+                        Especialidad
+                    </label>
+
+                    <select id="filtroEspecialidad">
+                        <option value="">Todas</option>
+                    </select>
+
+                </div>
+
+                <div class="filter-group">
+
+                    <label for="filtroTecnico">
+                        Puesto de trabajo
+                    </label>
+
+                    <select id="filtroTecnico">
+                        <option value="">Todos</option>
+                    </select>
+
+                </div>
+
+                <div class="filter-group">
+
+                    <label for="filtroClaseOrden">
+                        Clase de orden
+                    </label>
+
+                    <select id="filtroClaseOrden">
+                        <option value="">Todas</option>
+                    </select>
+
+                </div>
+
+                <div class="filter-group"><label for="filtroEstado">Estado de cumplimiento</label><select id="filtroEstado"><option value="">Todos</option></select></div>
+                <div class="filter-group"><label for="filtroUbicacion">Ubicación técnica</label><select id="filtroUbicacion"><option value="">Todas</option></select></div>
+            </div>
+
+            <div class="filter-actions">
+                <button id="btnPantalla" class="btn-secondary">Pantalla completa</button>
+
+                <button id="btnFiltrar"
+                        class="btn-primary">
+                    Aplicar filtros
+                </button>
+
+                <button id="btnLimpiar"
+                        class="btn-secondary">
+                    Limpiar filtros
+                </button>
+
+                <button id="btnExportar"
+                        class="btn-export">
+                    Exportar Excel
+                </button>
+
+                <button id="btnExportarPDF"
+                        class="btn-pdf"
+                        onclick="window.print()">
+                    Exportar PDF
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <nav id="tabs" aria-label="Secciones del indicador"><button data-tab="resumen">Resumen general</button><button data-tab="especialidades">Especialidades</button><button data-tab="tecnicos">Puestos de trabajo</button><button data-tab="pendientes">Pendientes</button><button data-tab="detalle">Detalle OT</button></nav>
+<section class="panel" id="panelPendientes" data-page="pendientes"><h2>Gestión de OT pendientes</h2><p id="resumenPendientes"></p><div class="filter-actions"><button class="btn-secondary" id="verSinCierre">Faltantes de cierre</button><button class="btn-secondary" id="verNoEjecutadas">No ejecutadas</button><button class="btn-secondary" id="verIncorrectas">Asignación incorrecta</button><button class="btn-export" id="exportarPendientes">Exportar pendientes filtradas</button></div></section>
+<!-- INDICADORES PRINCIPALES -->
+
+        <section class="kpi-grid" data-page="resumen">
+
+            <button class="kpi-card total"
+                    data-estado="todos">
+
+                <h3>Total de OT</h3>
+
+                <strong id="totalOT">0</strong>
+
+                <span>Órdenes de trabajo únicas</span>
+
+            </button>
+
+
+            <button class="kpi-card cumplimiento"
+                    data-estado="ejecutadas">
+
+                <h3>Cumplimiento de ejecución</h3>
+
+                <strong id="cumplimiento">0,0%</strong>
+
+                <span>OT ejecutadas / OT evaluables</span>
+
+            </button>
+
+
+            <button class="kpi-card cerradas"
+                    data-estado="cerradas">
+
+                <h3>Ejecutadas y cerradas</h3>
+
+                <strong id="totalCerradas">0</strong>
+
+                <span>Órdenes con cierre técnico</span>
+
+            </button>
+
+
+            <button class="kpi-card pendientes"
+                    data-estado="sinCierre">
+
+                <h3>Faltantes de cierre técnico</h3>
+
+                <strong id="totalSinCierre">0</strong>
+
+                <span>Notificadas sin CTEC</span>
+
+            </button>
+
+
+            <button class="kpi-card incumplimiento"
+                    data-estado="noEjecutadas">
+
+                <h3>No ejecutadas</h3>
+
+                <strong id="totalNoEjecutadas">0</strong>
+
+                <span>Incluye notificaciones parciales</span>
+
+            </button>
+
+
+            <button class="kpi-card parcial"
+                    data-estado="parciales">
+
+                <h3>Notificación parcial</h3>
+
+                <strong id="totalParciales">0</strong>
+
+                <span>No ejecutadas / Estado NOTP</span>
+
+            </button>
+
+
+            <button class="kpi-card cierre"
+                    data-estado="cerradas">
+
+                <h3>Cumplimiento de cierre técnico</h3>
+
+                <strong id="cumplimientoCierre">0,0%</strong>
+
+                <span>OT cerradas / OT evaluables</span>
+
+            </button>
+
+
+            <button class="kpi-card alerta"
+                    data-estado="asignacionIncorrecta">
+
+                <h3>Asignación de técnico incorrecta</h3>
+
+                <strong id="totalAsignacionIncorrecta">0</strong>
+
+                <span>Requiere corrección en SAP</span>
+
+            </button>
+
+        </section>
+
+
+        <!-- RESUMEN DE ÓRDENES EVALUABLES -->
+
+        <section class="panel resumen-evaluacion" data-page="resumen">
+
+            <div class="resumen-item">
+
+                <span>OT evaluables</span>
+
+                <strong id="totalEvaluables">—</strong>
+
+            </div>
+
+            <div class="resumen-item">
+
+                <span>OT ejecutadas</span>
+
+                <strong id="totalEjecutadas">—</strong>
+
+            </div>
+
+            <div class="resumen-item">
+
+                <span>OT excluidas del cumplimiento</span>
+
+                <strong id="totalExcluidas">—</strong>
+
+            </div>
+
+            <div class="resumen-item">
+
+                <span>Meta de cumplimiento</span>
+
+                <strong id="metaCumplimiento">90%</strong>
+
+            </div>
+
+        </section>
+
+
+        <!-- GRÁFICOS DEL INDICADOR -->
+
+        <section class="charts-grid">
+
+            <!-- GRÁFICO 1 -->
+
+            <div class="panel chart-panel">
+
+                <h2>Distribución de cumplimiento</h2>
+
+                <div class="chart-container">
+
+                    <canvas id="graficoCumplimiento"></canvas>
+
+                </div>
+
+            </div>
+
+
+            <!-- GRÁFICO 2 -->
+
+            <div class="panel chart-panel">
+
+                <h2>Cumplimiento por especialidad</h2>
+
+                <div class="chart-container">
+
+                    <canvas id="graficoEspecialidad"></canvas>
+
+                </div>
+
+            </div>
+
+
+            <!-- GRÁFICO 3 -->
+
+            <div class="panel chart-panel">
+
+                <h2>Tendencia semanal de cumplimiento</h2>
+
+                <div class="chart-container">
+
+                    <canvas id="graficoSemanal"></canvas>
+
+                </div>
+
+            </div>
+
+
+            <!-- GRÁFICO 4 -->
+
+            <div class="panel chart-panel">
+
+                <h2>Cumplimiento por clase de orden</h2>
+
+                <div class="chart-container">
+
+                    <canvas id="graficoClaseOrden"></canvas>
+
+                </div>
+
+            </div>
+
+
+            <!-- GRÁFICO 5 -->
+
+            <div class="panel chart-panel">
+
+                <h2>Ranking de cumplimiento por puesto de trabajo</h2>
+
+                <div class="chart-container chart-tall">
+
+                    <canvas id="graficoRanking"></canvas>
+
+                </div>
+
+            </div>
+
+
+            <!-- GRÁFICO 6 -->
+
+            <div class="panel chart-panel">
+
+                <h2>Faltantes de cierre técnico por puesto de trabajo</h2>
+
+                <div class="chart-container chart-tall">
+
+                    <canvas id="graficoPendientesTecnico"></canvas>
+
+                </div>
+
+            </div>
+
+<div class="panel chart-panel"><h2>Cierre técnico por especialidad</h2><div class="chart-container"><canvas id="graficoCierreEspecialidad"></canvas></div></div>
+<div class="panel chart-panel"><h2>Antigüedad de OT pendientes</h2><p class="nota-indicador">Días desde Creado el hasta la fecha actual; incluye OT evaluables sin cierre o no ejecutadas.</p><div class="chart-container"><canvas id="graficoAntiguedad"></canvas></div></div>
+<div class="panel chart-panel"><h2>Tendencia mensual de cumplimiento</h2><div class="chart-container"><canvas id="graficoMensual"></canvas></div></div>
+        </section>
+
+
+        <!-- TABLA POR PUESTO DE TRABAJO -->
+
+        <section class="panel" data-page="tecnicos">
+
+            <div class="section-header">
+
+                <h2>Cumplimiento por puesto de trabajo</h2>
+
+            </div>
+
+            <p class="nota-indicador">
+
+                Las órdenes compartidas se contabilizan para
+                cada puesto de trabajo asignado en SAP,
+                sin duplicar el total general.
+
+            </p>
+
+            <div class="table-container">
+
+                <table id="tablaTecnicos">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Código SAP</th>
+
+                            <th>Técnico / Puesto</th>
+
+                            <th>Especialidad</th>
+
+                            <th>Total OT</th>
+
+                            <th>Cerradas</th>
+
+                            <th>Faltantes de cierre técnico</th>
+
+                            <th>Notificación parcial</th>
+
+                            <th>No ejecutadas</th>
+
+                            <th>% Ejecución</th>
+
+                            <th>% Cierre técnico</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="cuerpoTablaTecnicos">
+
+                        <tr>
+
+                            <td colspan="10">
+                                Carga un archivo para visualizar
+                                los resultados.
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- DETALLE DE ÓRDENES DE TRABAJO -->
+
+        <section class="panel" id="seccionDetalle" data-page="detalle">
+
+            <div class="section-header">
+
+                <h2 id="tituloDetalle">
+                    Detalle de órdenes de trabajo
+                </h2>
+
+                <button class="btn-export" id="exportarDetalle">Exportar detalle visible</button>
+                <input type="search"
+                       id="buscarOT"
+                       placeholder="Buscar OT, técnico o descripción...">
+
+            </div>
+
+            <div class="table-container">
+
+                <table id="tablaOrdenes">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Orden</th>
+
+                            <th>Fecha de entrega de OT</th>
+
+                            <th>Clase de orden</th>
+
+                            <th>Descripción</th>
+
+                            <th>Ubicación técnica</th>
+
+                            <th>Puesto planificado</th>
+
+                            <th>Puesto real</th>
+
+                            <th>Técnico responsable</th>
+
+                            <th>Estado SAP</th>
+
+                            <th>Clasificación</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="cuerpoTablaOrdenes">
+
+                        <tr>
+
+                            <td colspan="10">
+                                No hay información disponible.
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- CRITERIOS DEL INDICADOR -->
+
+        <section class="panel criterios-panel" data-page="detalle">
+
+            <h2>Criterios de evaluación</h2>
+
+            <div class="criterios-grid">
+
+                <div>
+
+                    <h3>Ejecutada y cerrada</h3>
+
+                    <p>
+                        Estado CTEC sin notificación parcial.
+                    </p>
+
+                </div>
+
+                <div>
+
+                    <h3>Faltante de cierre técnico</h3>
+
+                    <p>
+                        Estado NOTI sin CTEC ni NOTP.
+                        Suma al cumplimiento de ejecución.
+                    </p>
+
+                </div>
+
+                <div>
+
+                    <h3>Notificación parcial</h3>
+
+                    <p>
+                        Estado NOTP. Se considera no ejecutada,
+                        incluso cuando existe CTEC.
+                    </p>
+
+                </div>
+
+                <div>
+
+                    <h3>Asignación incorrecta</h3>
+
+                    <p>
+                        Puestos E_IEF 03 y E_MEC 05.
+                        Excluidos del cálculo de cumplimiento.
+                    </p>
+
+                </div>
+
+                <div>
+
+                    <h3>Asignación de responsables</h3>
+
+                    <p>
+                        Prioridad al puesto real. Si está vacío,
+                        se utiliza el puesto planificado.
+                    </p>
+
+                </div>
+
+                <div>
+
+                    <h3>Fecha de referencia</h3>
+
+                    <p>
+                        Columna Creado el de SAP, utilizada
+                        como fecha de entrega de la OT.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- PIE DE PÁGINA -->
+
+    <footer>
+
+        <p>TESALIA CBC | Ingeniería Machachi</p>
+
+        <p>Planificación y Control de Mantenimiento</p>
+
+        <p>Indicador General de Cumplimiento de OT | Versión 1.4</p>
+
+    </footer>
+
+
+    <!-- ARCHIVOS DEL PROYECTO -->
+
+    <script src="config.js"></script>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
